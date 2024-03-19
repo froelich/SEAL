@@ -2,13 +2,17 @@
 // Licensed under the MIT license.
 
 #include "examples.h"
+#include <chrono>
+#include <vector>
+#include <random>
+
 
 using namespace std;
 using namespace seal;
 
 void example_ckks_basics()
 {
-    print_example_banner("Example: CKKS Basics");
+    print_example_banner("Example: CKKS Basics COUCOU");
 
     /*
     In this example we demonstrate evaluating a polynomial function
@@ -69,9 +73,11 @@ void example_ckks_basics()
     that our coeff_modulus is 200 bits total, which is below the bound for our
     poly_modulus_degree: CoeffModulus::MaxBitCount(8192) returns 218.
     */
-    size_t poly_modulus_degree = 8192;
+
+    // changed for compariosns with Sequre
+    size_t poly_modulus_degree = 16384;
     parms.set_poly_modulus_degree(poly_modulus_degree);
-    parms.set_coeff_modulus(CoeffModulus::Create(poly_modulus_degree, { 60, 40, 40, 60 }));
+    parms.set_coeff_modulus(CoeffModulus::Create(poly_modulus_degree, { 55, 40, 40, 40, 40, 40, 40, 40, 40 }));
 
     /*
     We choose the initial scale to be 2^40. At the last level, this leaves us
@@ -314,4 +320,44 @@ void example_ckks_basics()
     the CKKSEncoder would allow us to have done that just as easily. Additions
     and multiplications of complex numbers behave just as one would expect.
     */
+
+    // our own tests
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dist(-100.0, 100.0); // Adjust range as needed
+
+    // Create a vector to store the random values
+    std::vector<double> randomValues(8192);
+
+    // Generate random values and store them in the vector
+    for (int i = 0; i < 8192; ++i) {
+        randomValues[i] = dist(gen);
+    }
+
+    // Variable to store the total time taken
+        double totalTime = 0.0;
+
+        // Repeat the process 100 times
+        for (int iter = 0; iter < 100; ++iter) {
+            auto start = std::chrono::high_resolution_clock::now();
+
+            // function measured
+            Plaintext plain_vec1;
+            encoder.encode(randomValues, scale, plain_vec1);
+            Ciphertext vec1_encrypted;
+            encryptor.encrypt(plain_vec1, x1_encrypted);
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            // Calculate the time taken for this iteration
+            std::chrono::duration<double> duration = end - start;
+            totalTime += duration.count();
+        }
+
+        // Calculate the average time taken
+        double averageTime = totalTime / 100;
+
+        std::cout << "Average time taken for 100 iterations: " << averageTime << " seconds" << std::endl;
+
+
 }

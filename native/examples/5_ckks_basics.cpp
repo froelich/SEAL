@@ -77,7 +77,7 @@ void example_ckks_basics()
     // changed for compariosns with Sequre
     size_t poly_modulus_degree = 16384;
     parms.set_poly_modulus_degree(poly_modulus_degree);
-    parms.set_coeff_modulus(CoeffModulus::Create(poly_modulus_degree, { 55, 40, 40, 40, 40, 40, 40, 40, 40 }));
+    parms.set_coeff_modulus(CoeffModulus::Create(poly_modulus_degree, { 45, 34, 34, 34, 34, 34, 34, 34, 34, 34 }));
 
     /*
     We choose the initial scale to be 2^40. At the last level, this leaves us
@@ -86,7 +86,7 @@ void example_ckks_basics()
     primes are 40 bits (in fact, they are very close to 2^40), we can achieve
     scale stabilization as described above.
     */
-    double scale = pow(2.0, 40);
+    double scale = pow(2.0, 34);
 
     SEALContext context(parms);
     print_parameters(context);
@@ -266,9 +266,9 @@ void example_ckks_basics()
     the scale of PI*x^3 and 0.4*x to 2^40.
     */
     print_line(__LINE__);
-    cout << "Normalize scales to 2^40." << endl;
-    x3_encrypted.scale() = pow(2.0, 40);
-    x1_encrypted.scale() = pow(2.0, 40);
+    cout << "Normalize scales to 2^34." << endl;
+    x3_encrypted.scale() = pow(2.0, 34);
+    x1_encrypted.scale() = pow(2.0, 34);
 
     /*
     We still have a problem with mismatching encryption parameters. This is easy
@@ -328,6 +328,7 @@ void example_ckks_basics()
 
     // Create a vector to store the random values
     std::vector<double> randomValues(8192);
+    stringstream data_stream;
 
     // Generate random values and store them in the vector
     for (int i = 0; i < 8192; ++i) {
@@ -337,17 +338,59 @@ void example_ckks_basics()
     // Variable to store the total time taken
         double totalTime = 0.0;
 
+        Plaintext plain_vec1;
+        encoder.encode(randomValues, scale, plain_vec1);
+        Ciphertext vec1_encrypted;
+        encryptor.encrypt(plain_vec1, vec1_encrypted);
+
         // Repeat the process 100 times
         for (int iter = 0; iter < 100; ++iter) {
             auto start = std::chrono::high_resolution_clock::now();
 
-            // function measured
+            // encryption
+            //Plaintext plain_vec1;
+            //encoder.encode(randomValues, scale, plain_vec1);
+            //Ciphertext vec1_encrypted;
+            //encryptor.encrypt(plain_vec1, vec1_encrypted);
+
+            // plain add
+            //vec1_encrypted.save(data_stream);
+            //std::this_thread::sleep_for(std::chrono::milliseconds(40));
+            //vec1_encrypted.load(context, data_stream);
+            //Ciphertext encrypted_result;
+            //evaluator.add(vec1_encrypted, vec1_encrypted, encrypted_result);
+
+            // add
+            //Ciphertext encrypted_result;
+            //evaluator.add(vec1_encrypted, vec1_encrypted, encrypted_result);
+
+            // plain mult
+            //vec1_encrypted.save(data_stream);
+            //std::this_thread::sleep_for(std::chrono::milliseconds(40));
+            //vec1_encrypted.load(context, data_stream);
+            //Ciphertext encrypted_result;
+            //evaluator.multiply(vec1_encrypted, vec1_encrypted,encrypted_result);
+            //evaluator.relinearize_inplace(encrypted_result, relin_keys);
+            //evaluator.rescale_to_next_inplace(encrypted_result);
+
+            // mult
+            //Ciphertext encrypted_result;
+            //evaluator.multiply(vec1_encrypted, vec1_encrypted,encrypted_result);
+            //evaluator.relinearize_inplace(encrypted_result, relin_keys);
+            //evaluator.rescale_to_next_inplace(encrypted_result);
+
+            // rotate
+            //Ciphertext encrypted_result;
+            //evaluator.rotate_vector(vec1_encrypted, 2, gal_keys, encrypted_result);
+
+            // decrypt
             Plaintext plain_vec1;
-            encoder.encode(randomValues, scale, plain_vec1);
-            Ciphertext vec1_encrypted;
-            encryptor.encrypt(plain_vec1, x1_encrypted);
+            decryptor.decrypt(encrypted_result, plain_vec1);
+            vector<double> result;
+            encoder.decode(plain_vec1, result);
 
             auto end = std::chrono::high_resolution_clock::now();
+
 
             // Calculate the time taken for this iteration
             std::chrono::duration<double> duration = end - start;
